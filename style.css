@@ -1,0 +1,652 @@
+/* ============================================================
+   CYBER COMMAND CENTER — style.css
+   Dark retro-futuristic aesthetic: deep space, neon data readouts,
+   scanline overlays, glassomorphic panels.
+   ============================================================ */
+
+/* ---- CSS Variables ---------------------------------------- */
+:root {
+  --bg:           #000510;
+  --panel-bg:     rgba(2, 12, 28, 0.88);
+  --panel-border: #0e3d5a;
+  --panel-glow:   #00e5ff22;
+  --accent:       #00e5ff;
+  --accent-dim:   #0077aa;
+  --text:         #b0d4e8;
+  --text-dim:     #3a6070;
+  --green:        #00ff88;
+  --yellow:       #ffcc00;
+  --red:          #ff2244;
+  --cyan:         #00e5ff;
+  --font-display: 'Orbitron', monospace;
+  --font-data:    'Share Tech Mono', monospace;
+  --panel-w:      270px;
+  --topbar-h:     52px;
+  --bottombar-h:  34px;
+  --radius:       2px;
+}
+
+/* ---- Reset ------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-data);
+}
+
+/* ---- Canvas container ------------------------------------- */
+#canvas-container {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ── Scanline overlay on the whole viewport ─────────────── */
+#canvas-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- Top Bar ---------------------------------------------- */
+#top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--topbar-h);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(180deg, rgba(0,5,20,0.97) 0%, rgba(0,5,20,0.80) 100%);
+  border-bottom: 1px solid var(--panel-border);
+  box-shadow: 0 1px 20px rgba(0, 229, 255, 0.07);
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-bracket {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--accent);
+  white-space: nowrap;
+}
+
+.top-bar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.hud-clock {
+  font-family: var(--font-data);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.ws-label {
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* WS status variants */
+.status-live      { color: var(--green); text-shadow: 0 0 6px var(--green); animation: blink-dot 2s infinite; }
+.status-reconnect { color: var(--yellow); animation: blink-dot 0.6s infinite; }
+.status-offline   { color: var(--red); }
+
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ---- Side Panels (shared) --------------------------------- */
+#panel-left,
+#panel-right {
+  position: fixed;
+  top: var(--topbar-h);
+  bottom: var(--bottombar-h);
+  width: var(--panel-w);
+  z-index: 5;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  /* Panel scanline */
+  background: var(--panel-bg);
+  backdrop-filter: blur(6px);
+  border-color: var(--panel-border);
+  border-style: solid;
+}
+
+/* Scanline texture on panels */
+#panel-left::before,
+#panel-right::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 229, 255, 0.015) 3px,
+    rgba(0, 229, 255, 0.015) 6px
+  );
+  pointer-events: none;
+}
+
+#panel-left  {
+  left: 0;
+  border-right-width: 1px;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  border-left-width: 0;
+  box-shadow: 2px 0 24px rgba(0,229,255,0.04);
+}
+
+#panel-right {
+  right: 0;
+  border-left-width: 1px;
+  border-top-width: 0;
+  border-bottom-width: 0;
+  border-right-width: 0;
+  box-shadow: -2px 0 24px rgba(0,229,255,0.04);
+}
+
+/* ---- Panel Blocks ----------------------------------------- */
+.panel-block {
+  position: relative;
+  border: 1px solid var(--panel-border);
+  background: rgba(0, 229, 255, 0.02);
+  padding: 10px 12px 12px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+.panel-block.fill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* corner decorations */
+.panel-block::before,
+.panel-block::after {
+  content: '';
+  position: absolute;
+  width: 6px; height: 6px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.5;
+}
+.panel-block::before { top: -1px; left: -1px;  border-width: 1px 0 0 1px; }
+.panel-block::after  { bottom: -1px; right: -1px; border-width: 0 1px 1px 0; }
+
+/* ---- Panel Title ------------------------------------------ */
+.panel-title {
+  font-family: var(--font-display);
+  font-size: 8.5px;
+  letter-spacing: 0.22em;
+  color: var(--accent-dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  white-space: nowrap;
+}
+
+.title-bar-line {
+  flex: 1;
+  height: 1px;
+  background: var(--panel-border);
+}
+
+/* ---- Threat Counter Grid ---------------------------------- */
+.counter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.counter-cell {
+  border: 1px solid var(--panel-border);
+  padding: 8px 6px 6px;
+  text-align: center;
+  background: rgba(0,229,255,0.02);
+  border-radius: var(--radius);
+}
+
+.counter-label {
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+.counter-value {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.counter-value.cyan   { color: var(--cyan);   text-shadow: 0 0 10px var(--cyan); }
+.counter-value.red    { color: var(--red);    text-shadow: 0 0 10px var(--red); }
+.counter-value.yellow { color: var(--yellow); text-shadow: 0 0 10px var(--yellow); }
+.counter-value.green  { color: var(--green);  text-shadow: 0 0 10px var(--green); }
+
+/* ---- Risk Score ------------------------------------------- */
+.risk-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.risk-number-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.risk-number {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--accent);
+  text-shadow: 0 0 14px var(--accent);
+  line-height: 1;
+  transition: color 0.4s;
+}
+
+.risk-unit {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.risk-bar-bg {
+  position: relative;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--panel-border);
+  border-radius: 1px;
+  overflow: visible;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--green);
+  box-shadow: 0 0 8px currentColor;
+  transition: width 0.5s ease, background 0.5s ease;
+  border-radius: 1px;
+}
+
+.risk-tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: rgba(255,255,255,0.15);
+}
+
+.risk-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+}
+
+/* ---- System Status Rows ----------------------------------- */
+.sys-rows { display: flex; flex-direction: column; gap: 5px; }
+
+.sys-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(14,61,90,0.4);
+}
+
+.sys-val {
+  font-weight: bold;
+  letter-spacing: 0.1em;
+}
+
+.sys-val.green  { color: var(--green);  text-shadow: 0 0 5px var(--green); }
+.sys-val.yellow { color: var(--yellow); text-shadow: 0 0 5px var(--yellow); }
+.sys-val.cyan   { color: var(--cyan);   text-shadow: 0 0 5px var(--cyan); animation: scanning 1.5s ease-in-out infinite; }
+.sys-val.red    { color: var(--red);    text-shadow: 0 0 5px var(--red); }
+
+@keyframes scanning {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+/* ---- Attack Log ------------------------------------------- */
+.log-header-row {
+  display: grid;
+  grid-template-columns: 0.9fr 1fr 0.7fr 1.1fr;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 7px;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  padding: 0 2px 6px;
+  border-bottom: 1px solid var(--panel-border);
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.attack-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Custom scrollbar */
+.attack-list::-webkit-scrollbar { width: 3px; }
+.attack-list::-webkit-scrollbar-track { background: transparent; }
+.attack-list::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 2px; }
+
+.log-placeholder {
+  color: var(--text-dim);
+  font-size: 10px;
+  text-align: center;
+  padding: 20px 0;
+  letter-spacing: 0.1em;
+  animation: scanning 1.5s ease-in-out infinite;
+}
+
+.log-entry {
+  display: grid;
+  grid-template-columns: 16px 0.85fr 1fr 0.65fr 1fr;
+  gap: 3px;
+  align-items: center;
+  font-size: 9.5px;
+  padding: 3px 2px;
+  border-bottom: 1px solid rgba(14,61,90,0.25);
+  animation: log-slide-in 0.3s ease;
+  letter-spacing: 0.03em;
+}
+
+@keyframes log-slide-in {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.log-dot    { font-size: 10px; }
+.log-type   { color: var(--text); font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-country { color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 9px; }
+.log-level  { font-family: var(--font-display); font-size: 7px; font-weight: 600; letter-spacing: 0.1em; }
+.log-ip     { color: #3a6a80; font-size: 8.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Bottom Bar ------------------------------------------- */
+#bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--bottombar-h);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  background: rgba(0, 5, 20, 0.95);
+  border-top: 1px solid var(--panel-border);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+}
+
+.bottom-label {
+  font-family: var(--font-display);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.last-event-text {
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: event-flash 0.5s ease;
+}
+
+@keyframes event-flash {
+  0%   { opacity: 0; }
+  40%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* ---- Responsive — shrink panels on small screens ---------- */
+@media (max-width: 900px) {
+  :root { --panel-w: 210px; }
+  .logo-text { font-size: 10px; }
+}
+
+@media (max-width: 640px) {
+  #panel-left  { display: none; }
+  #panel-right { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ENHANCEMENTS — Risk Badge, Crisis Mode, Clustering, UI Polish
+   ══════════════════════════════════════════════════════════ */
+
+/* ---- Risk Status Badge ------------------------------------ */
+.risk-status-badge {
+  font-family: var(--font-display);
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 2px 6px;
+  border-radius: 1px;
+  border: 1px solid currentColor;
+  margin-left: auto;
+  align-self: flex-start;
+  transition: var(--transition);
+}
+
+.risk-status-badge.status-low    { color: var(--green);  box-shadow: 0 0 6px var(--green)33; }
+.risk-status-badge.status-medium { color: var(--yellow); box-shadow: 0 0 6px var(--yellow)33; }
+.risk-status-badge.status-high   { color: var(--red);    box-shadow: 0 0 8px var(--red)55; animation: badge-pulse 0.8s ease-in-out infinite; }
+
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1;  box-shadow: 0 0 8px var(--red)55; }
+  50%       { opacity: 0.6; box-shadow: 0 0 16px var(--red)99; }
+}
+
+/* ---- Risk Detail Text ------------------------------------- */
+.risk-detail {
+  font-size: 8.5px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  border-left: 2px solid var(--panel-border);
+  padding-left: 6px;
+  min-height: 13px;
+  transition: color 0.4s ease, border-color 0.4s ease;
+}
+
+.risk-detail.warn  { color: var(--yellow); border-color: var(--yellow); }
+.risk-detail.alert { color: var(--red);    border-color: var(--red); }
+
+/* ---- Crisis Mode Banner ----------------------------------- */
+.crisis-banner {
+  position: fixed;
+  top: var(--topbar-h);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crisis-banner.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(-12px);
+}
+
+.crisis-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(20, 0, 4, 0.96);
+  border: 1px solid var(--red);
+  box-shadow: 0 0 28px rgba(255, 34, 68, 0.45), inset 0 0 20px rgba(255, 34, 68, 0.05);
+  padding: 8px 22px;
+  backdrop-filter: blur(8px);
+}
+
+.crisis-text {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  color: var(--red);
+  text-shadow: 0 0 16px var(--red);
+  animation: crisis-flicker 1.4s ease-in-out infinite;
+}
+
+.crisis-icon {
+  font-size: 14px;
+  color: var(--red);
+  animation: crisis-flicker 1.4s ease-in-out infinite;
+}
+
+@keyframes crisis-flicker {
+  0%, 100% { opacity: 1; }
+  45%       { opacity: 1; }
+  50%       { opacity: 0.3; }
+  55%       { opacity: 1; }
+  80%       { opacity: 1; }
+  85%       { opacity: 0.5; }
+  90%       { opacity: 1; }
+}
+
+/* ---- Crisis Red Vignette Overlay -------------------------- */
+.crisis-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(180, 0, 20, 0.18) 100%);
+  box-shadow: inset 0 0 120px rgba(220, 0, 30, 0.22);
+  transition: opacity 0.6s ease;
+  opacity: 1;
+}
+
+.crisis-overlay.hidden { opacity: 0; }
+
+/* ---- Crisis Mode — body class applied by JS --------------- */
+body.crisis-mode #top-bar {
+  border-bottom-color: rgba(255, 34, 68, 0.4);
+  box-shadow: 0 1px 20px rgba(255, 34, 68, 0.15);
+}
+
+body.crisis-mode #bottom-bar {
+  border-top-color: rgba(255, 34, 68, 0.35);
+}
+
+body.crisis-mode #panel-left,
+body.crisis-mode #panel-right {
+  border-color: rgba(255, 34, 68, 0.25);
+}
+
+/* Log entries: HIGH emphasized, LOW dimmed in crisis */
+body.crisis-mode .log-entry.level-low  { opacity: 0.35 !important; filter: grayscale(0.4); }
+body.crisis-mode .log-entry.level-high { background: rgba(255, 34, 68, 0.06); border-radius: 1px; }
+
+/* ---- Cluster Badge on Log Entry --------------------------- */
+.cluster-badge {
+  font-family: var(--font-display);
+  font-size: 6.5px;
+  font-weight: 700;
+  color: var(--yellow);
+  border: 1px solid var(--yellow);
+  padding: 0px 3px;
+  border-radius: 1px;
+  letter-spacing: 0.05em;
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: badge-pulse-yellow 1s ease-in-out infinite;
+}
+
+@keyframes badge-pulse-yellow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* ---- Enhanced Panel blocks — neon blue inner glow --------- */
+.panel-block {
+  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+.panel-block:hover {
+  border-color: rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.06);
+}
+
+/* ---- Counter cells — hover lift --------------------------- */
+.counter-cell {
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.counter-cell:hover {
+  background: rgba(0, 229, 255, 0.05);
+  border-color: rgba(0, 229, 255, 0.2);
+}
+
+/* ---- Attack log — HIGH entries always pop ----------------- */
+.log-entry.level-high .log-type {
+  color: var(--red);
+  text-shadow: 0 0 6px rgba(255, 34, 68, 0.5);
+}
+
+/* ---- Smooth WS status transitions ------------------------- */
+#ws-status { transition: color 0.3s ease; }
