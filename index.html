@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CYBER COMMAND CENTER</title>
+
+  <!-- Fonts: Orbitron (headers) + Share Tech Mono (data readouts) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+
+  <!-- Three.js r128 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls for r128 (attaches as THREE.OrbitControls) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════
+       THREE.JS CANVAS MOUNT POINT
+  ════════════════════════════════════════════════════════ -->
+  <div id="canvas-container"></div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       TOP BAR
+  ════════════════════════════════════════════════════════ -->
+  <header id="top-bar">
+    <div class="top-bar-left">
+      <div class="logo-bracket">[</div>
+      <h1 class="logo-text">CYBER COMMAND CENTER</h1>
+      <div class="logo-bracket">]</div>
+    </div>
+
+    <div class="top-bar-center">
+      <div class="hud-clock" id="hud-clock">00:00:00 UTC</div>
+    </div>
+
+    <div class="top-bar-right">
+      <span class="ws-label">FEED</span>
+      <span id="ws-status" class="status-offline">● OFFLINE</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════
+       LEFT PANEL — THREAT COUNTERS + RISK SCORE
+  ════════════════════════════════════════════════════════ -->
+  <aside id="panel-left">
+
+    <!-- Threat Counters -->
+    <div class="panel-block">
+      <div class="panel-title">
+        <span class="title-bar-line"></span>
+        THREAT COUNTERS
+        <span class="title-bar-line"></span>
+      </div>
+
+      <div class="counter-grid">
+        <div class="counter-cell">
+          <div class="counter-label">TOTAL</div>
+          <div class="counter-value cyan" id="count-total">0</div>
+        </div>
+        <div class="counter-cell">
+          <div class="counter-label">HIGH</div>
+          <div class="counter-value red" id="count-high">0</div>
+        </div>
+        <div class="counter-cell">
+          <div class="counter-label">MEDIUM</div>
+          <div class="counter-value yellow" id="count-medium">0</div>
+        </div>
+        <div class="counter-cell">
+          <div class="counter-label">LOW</div>
+          <div class="counter-value green" id="count-low">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Score -->
+    <div class="panel-block">
+      <div class="panel-title">
+        <span class="title-bar-line"></span>
+        RISK SCORE
+        <span class="title-bar-line"></span>
+      </div>
+
+      <div class="risk-display">
+        <div class="risk-number-wrap">
+          <span id="risk-value" class="risk-number">0</span>
+          <span class="risk-unit">/100</span>
+        </div>
+        <div class="risk-bar-bg">
+          <div id="risk-bar-fill" class="risk-bar-fill"></div>
+          <!-- tick marks -->
+          <div class="risk-tick" style="left:25%"></div>
+          <div class="risk-tick" style="left:50%"></div>
+          <div class="risk-tick" style="left:75%"></div>
+        </div>
+        <div class="risk-labels">
+          <span>SAFE</span><span>CAUTION</span><span>DANGER</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Status (placeholder readouts) -->
+    <div class="panel-block">
+      <div class="panel-title">
+        <span class="title-bar-line"></span>
+        SYSTEM STATUS
+        <span class="title-bar-line"></span>
+      </div>
+      <div class="sys-rows">
+        <div class="sys-row"><span>FIREWALL</span>      <span class="sys-val green">ACTIVE</span></div>
+        <div class="sys-row"><span>IDS/IPS</span>       <span class="sys-val green">ONLINE</span></div>
+        <div class="sys-row"><span>VPN TUNNEL</span>    <span class="sys-val green">SECURED</span></div>
+        <div class="sys-row"><span>HONEYPOT</span>      <span class="sys-val yellow">ALERT</span></div>
+        <div class="sys-row"><span>BACKUP NODE</span>   <span class="sys-val green">READY</span></div>
+        <div class="sys-row"><span>THREAT INTEL</span>  <span class="sys-val cyan">SCANNING</span></div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════
+       RIGHT PANEL — LIVE ATTACK LOG
+  ════════════════════════════════════════════════════════ -->
+  <aside id="panel-right">
+
+    <div class="panel-block fill">
+      <div class="panel-title">
+        <span class="title-bar-line"></span>
+        LIVE ATTACK LOG
+        <span class="title-bar-line"></span>
+      </div>
+
+      <div class="log-header-row">
+        <span>TYPE</span>
+        <span>ORIGIN</span>
+        <span>LEVEL</span>
+        <span>SOURCE IP</span>
+      </div>
+
+      <div id="attack-list" class="attack-list">
+        <div class="log-placeholder">Awaiting feed...</div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ═══════════════════════════════════════════════════════
+       BOTTOM BAR — latest single-line event
+  ════════════════════════════════════════════════════════ -->
+  <footer id="bottom-bar">
+    <span class="bottom-label">LAST EVENT ▸</span>
+    <span id="last-event-text" class="last-event-text">NO EVENTS DETECTED</span>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
